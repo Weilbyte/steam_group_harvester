@@ -2,6 +2,7 @@ const axios = require('axios');
 const progress = require('cli-progress');
 
 const chewer = require('./chewer');
+const misc = require('./misc');
 
 const barConfig = {
     format: '{activity}\t |' + '{bar}' + '| {percentage}%',
@@ -13,9 +14,10 @@ const barConfig = {
 module.exports = async (groupID) => {
     const multibar = new progress.MultiBar(barConfig);
     const [totalPages, totalMembers] = await getGroupData(groupID);
+    const estimate = misc.estimateTime(totalPages, totalMembers);
     const barGather = multibar.create(totalPages, 0, {"activity": "Gathering"});
     const barProcess = multibar.create(totalMembers, 0, {"activity": "Processing"});
-    console.log(`Page count: ${totalPages} | Estimated time: ${totalPages}s`);
+    console.log(`Estimated ${estimate} to go through ${totalPages} and ${totalMembers} members.\n`);
     await new Promise(done => setTimeout(done, 300));
     dispatch(groupID, totalPages, barGather).then(() => {
         chewer.chewIDs().then(() => {
@@ -47,7 +49,7 @@ async function requestPage(groupID, page) {
 async function getGroupData(groupID) {
     const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1`);
     const json = chewer.xmlToJSON(response.data);
-    const pages = json['elements']['0']['elements']['3']['elements']['0']['text'];
-    const members = json['elements']['0']['elements']['2']['elements']['0']['text'];
+    const pages = parseInt(json['elements']['0']['elements']['3']['elements']['0']['text']);
+    const members = parseInt(json['elements']['0']['elements']['2']['elements']['0']['text']);
     return [pages, members];
 }
