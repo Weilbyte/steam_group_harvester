@@ -4,7 +4,7 @@ const progress = require('cli-progress');
 const chewer = require('./chewer');
 
 const barConfig = {
-    format: '{status} |' + '{bar}' + '| {percentage}%',
+    format: '{activity}\t |' + '{bar}' + '| {percentage}%',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
     hideCursor: true
@@ -12,13 +12,12 @@ const barConfig = {
 
 module.exports = async (groupID) => {
     const multibar = new progress.MultiBar(barConfig);
-    const totalPageNum = await getPageCount(groupID);
-    const totalMembers = await getMemberCount(groupID);
-    const barGather = multibar.create(totalPageNum, 0, {"status": "Preparing.."});
-    const barProcess = multibar.create(totalMembers, 0, {"status": "Waiting to gather.."});
-    console.log(`Page count: ${totalPageNum} | Estimated time: ${totalPageNum}s`);
+    const [totalPages, totalMembers] = await getGroupData(groupID);
+    const barGather = multibar.create(totalPages, 0, {"activity": "Gathering"});
+    const barProcess = multibar.create(totalMembers, 0, {"activity": "Processing"});
+    console.log(`Page count: ${totalPages} | Estimated time: ${totalPages}s`);
     await new Promise(done => setTimeout(done, 300));
-    dispatch(groupID, totalPageNum, barGather).then(() => {
+    dispatch(groupID, totalPages, barGather).then(() => {
         chewer.chewIDs().then(() => {
             process.exit(0);
         });
@@ -30,15 +29,13 @@ async function dispatch(groupID, totalPageNum, bar) {
     for (curPage=1; curPage <= totalPageNum; curPage++) {
         await new Promise(done => setTimeout(done, 100));
         if (rate >= 10) {
-            bar.update(curPage, {status: "Waiting.."});
             await new Promise(done => setTimeout(done, 10000));
             rate = 0;
         }
-        bar.update(curPage, {status: "Gathering.."});
+        bar.update(curPage);
         await requestPage(groupID, curPage).catch(console.error);
         rate++;
     }
-    bar.update(totalPageNum, {status: "Gathered!"});
 }
 
 async function requestPage(groupID, page) {
@@ -47,15 +44,10 @@ async function requestPage(groupID, page) {
     await chewer.chewPage(json);
 }
 
-async function getPageCount(groupID) {
+async function getGroupData(groupID) {
     const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1`);
     const json = chewer.xmlToJSON(response.data);
-    return json['elements']['0']['elements']['3']['elements']['0']['text'];
+    const pages = json['elements']['0']['elements']['3']['elements']['0']['text'];
+    const members = json['elements']['0']['elements']['2']['elements']['0']['text'];
+    return [pages, members];
 }
-
-async function getMemberCount(groupID) {
-    const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1`);
-    const json = chewer.xmlToJSON(response.data);
-    return json['elements']['0']['elements']['2']['elements']['0']['text'];
-}
-
