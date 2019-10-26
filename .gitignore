@@ -62,3 +62,4 @@ typings/
 
 # Project-specific
 api.key
+profiles_*.json
