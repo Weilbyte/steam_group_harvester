@@ -5,7 +5,7 @@ const APIKeyFile = "./api.key"
 
 module.exports = {
     estimateTime: function(pages, members) {
-        var seconds = (pages + (pages * 0.100));
+        var seconds = (pages + (pages * 0.100) + (members * 0.010)).toFixed(1);
         if (seconds > 59.9) {
             var minutes = (seconds/60).toFixed(0);
             var leftover = (seconds%60).toFixed(0);

@@ -1,6 +1,7 @@
 const axios = require('axios');
 const progress = require('cli-progress');
 
+const index = require('./index');
 const chewer = require('./chewer');
 const misc = require('./misc');
 
@@ -8,7 +9,9 @@ const barConfig = {
     format: '{activity}\t |' + '{bar}' + '| {percentage}%',
     barCompleteChar: '\u2588',
     barIncompleteChar: '\u2591',
-    hideCursor: true
+    hideCursor: true,
+    clearOnComplete: false,
+    stopOnComplete: false,
 };
 
 module.exports = async (groupID) => {
@@ -16,14 +19,15 @@ module.exports = async (groupID) => {
     const [totalPages, totalMembers] = await getGroupData(groupID);
     const estimate = misc.estimateTime(totalPages, totalMembers);
     const barGather = multibar.create(totalPages, 0, {"activity": "Gathering"});
-    const barProcess = multibar.create(totalMembers, 0, {"activity": "Processing"});
+    const barProc = multibar.create(totalMembers, 0, {"activity": "Processing"});
     console.log(`Estimated ${estimate} to go through ${totalPages} and ${totalMembers} members.\n`);
     await new Promise(done => setTimeout(done, 300));
-    dispatch(groupID, totalPages, barGather).then(() => {
-        chewer.chewIDs().then(() => {
+    dispatch(groupID, totalPages, barGather).then(async () => {
+        chewer.chewIDs(barProc).then(() => {
+            multibar.stop();
             process.exit(0);
         });
-    })
+    });
 }
 
 async function dispatch(groupID, totalPageNum, bar) {
@@ -44,6 +48,14 @@ async function requestPage(groupID, page) {
     const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1&p=${page}`);
     const json = chewer.xmlToJSON(response.data);
     await chewer.chewPage(json);
+}
+
+async function requestProfile(steamID) {
+    await new Promise(done => setTimeout(done, 10));
+    const key = misc.getKey();
+    const response = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${key}&steamids=${steamID}`)
+    const json = JSON.parse(response.data);
+    return json;
 }
 
 async function getGroupData(groupID) {
