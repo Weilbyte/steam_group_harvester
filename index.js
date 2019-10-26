@@ -5,6 +5,15 @@ const readline = require('readline').createInterface({
     output: process.stdout
 });
 
+var groupID = null;
+
+module.exports = {
+    groupID: groupID
+}
+
 misc.loadKey();
 console.log('[you lay eyes upon steam_group_harvester]\n');
-readline.question('Enter group ID: ', async (groupid) => {runner.start(groupid)});
+readline.question('Enter group ID: ', async (groupid) => {
+    groupID = groupid;
+    runner.start();
+});
