@@ -7,4 +7,4 @@ const readline = require('readline').createInterface({
 
 misc.loadKey();
 console.log('[you lay eyes upon steam_group_harvester]\n');
-readline.question('Enter group ID: ', async (groupid) => {requester(groupid)});
+readline.question('Enter group ID: ', async (groupid) => {requester.start(groupid)});

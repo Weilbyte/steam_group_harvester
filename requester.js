@@ -1,7 +1,6 @@
 const axios = require('axios');
 const progress = require('cli-progress');
 
-const index = require('./index');
 const chewer = require('./chewer');
 const misc = require('./misc');
 
@@ -14,7 +13,11 @@ const barConfig = {
     stopOnComplete: false,
 };
 
-module.exports = async (groupID) => {
+module.exports = {
+    start: start
+}
+
+async function start(groupID) {
     const multibar = new progress.MultiBar(barConfig);
     const [totalPages, totalMembers] = await getGroupData(groupID);
     const estimate = misc.estimateTime(totalPages, totalMembers);
@@ -22,12 +25,8 @@ module.exports = async (groupID) => {
     const barProc = multibar.create(totalMembers, 0, {"activity": "Processing"});
     console.log(`Estimated ${estimate} to go through ${totalPages} and ${totalMembers} members.\n`);
     await new Promise(done => setTimeout(done, 300));
-    dispatch(groupID, totalPages, barGather).then(async () => {
-        chewer.chewIDs(barProc).then(() => {
-            multibar.stop();
-            process.exit(0);
-        });
-    });
+    await (groupID, totalPages, barGather);
+    await chewer.chewIDs(barProc).catch(console.error);
 }
 
 async function dispatch(groupID, totalPageNum, bar) {
@@ -48,14 +47,6 @@ async function requestPage(groupID, page) {
     const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1&p=${page}`);
     const json = chewer.xmlToJSON(response.data);
     await chewer.chewPage(json);
-}
-
-async function requestProfile(steamID) {
-    await new Promise(done => setTimeout(done, 10));
-    const key = misc.getKey();
-    const response = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${key}&steamids=${steamID}`)
-    const json = JSON.parse(response.data);
-    return json;
 }
 
 async function getGroupData(groupID) {
