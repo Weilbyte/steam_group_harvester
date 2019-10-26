@@ -18,9 +18,9 @@ module.exports = {
         })
     },
     chewIDs: async function(bar) {
+        var i=0;
         var profileList = new Object();
-        key = await misc.getKey();
-        SteamIDList.forEach(async function(steamID, i){
+        for (const steamID of SteamIDList) {
             bar.update(++i);
             const [username, country, state] = await chewProfile(steamID).catch(console.error);
             profileList[steamID] = {
@@ -28,7 +28,7 @@ module.exports = {
                 "country": country,
                 "state": state
             };
-        });
+        }   
         await misc.createResultFile(profileList);
         bar.stop();
     }
