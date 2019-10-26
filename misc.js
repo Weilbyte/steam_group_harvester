@@ -33,8 +33,8 @@ module.exports = {
             console.log(error);
         }
     },
-    getKey: function() {
-        if (APIKey.length > 5) return APIKey;
+    getKey: async function() {
+        if (APIKey != null) return APIKey;
         console.log("\nPut your API key in the api.key file.");
         process.exit(1);
     }
