@@ -8,6 +8,7 @@ const APIKeyFile = "./api.key";
 module.exports = {
     createResultFile: createResultFile,
     estimateTime: estimateTime,
+    converTime: convertTime,
     loadKey: loadKey,
     getKey: getKey
 }
@@ -37,21 +38,25 @@ function loadKey() {
 }
 
 function estimateTime(pages, members) {
-    var seconds = (pages + (pages * 0.100) + (members * 0.010)).toFixed(1);
-    if (seconds > 59.9) {
-        var minutes = (seconds/60).toFixed(0);
-        var leftover = (seconds%60).toFixed(0);
-        if (leftover > 0) {
-            return `${minutes}m ${leftover}s`;
-        }
-        return `${minutes.toFixed(0)}m`;
-    }
-    return `${seconds}s`;
+    var seconds = (pages + (pages * 0.100) + (members * 0.470)).toFixed(1);
+    return convertTime(seconds);
 }
 
 async function createResultFile(json) {
     const ResultFile = `./profiles_${index.groupID}.json`; 
     const stringJson = JSON.stringify(json);
     fs.writeFileSync(ResultFile, stringJson);
+}
+
+function convertTime(seconds) {
+    if (seconds > 59.9) {
+        const minutes = (seconds/60).toFixed(0);
+        const leftover = (seconds%60).toFixed(0);
+        if (leftover > 0) {
+            return `${minutes}m ${leftover}s`;
+        }
+        return `${minutes.toFixed(0)}m`;
+    }
+    return `${seconds}s`;
 }
 
