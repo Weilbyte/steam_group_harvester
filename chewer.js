@@ -1,6 +1,11 @@
 const convert = require('xml-js');
+const axios = require('axios');
 
+const misc = require('./misc');
+const requester = require('./requester');
 const SteamIDList = [];
+
+var key = null;
 
 module.exports = {
     xmlToJSON: function(xml) {
@@ -15,8 +20,14 @@ module.exports = {
             SteamIDList.push(steamID);
         })
     },
-    chewIDs: async function() {
-        console.log(`\nAmount of IDs: ${SteamIDList.length}`);
+    chewIDs: async function(bar) {
+        key = await misc.getKey();
+        SteamIDList.forEach(async function(steamID, i){
+            bar.update(++i);
+            const [username, country, state] = await chewProfile(steamID).catch(console.error);
+            console.log(`${username} (${steamID}) - ${state} ${country}`);
+        });
+        bar.stop();
     }
 };
 
@@ -31,6 +42,17 @@ function getMemberElement(json) {
     return result;
 }
 
-function processID(steamID) {
-
+async function chewProfile(steamID) {
+    await new Promise(done => setTimeout(done, 10));
+    const response = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${key}&steamids=${steamID}`);
+    const profile = JSON.parse(JSON.stringify(response.data))['response']['players'][0];
+    var [username, country, state] = [profile['personaname'],"N/A",""];
+    if (profile['loccountrycode'] != null) {
+        country = profile['loccountrycode'];
+        if (country === 'US') {
+            if (profile['locstatecode'] != null) state = profile['locstatecode'];
+        }
+    }
+    return [username, country, state];
 }
+
