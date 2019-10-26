@@ -25,8 +25,9 @@ async function start(groupID) {
     const barProc = multibar.create(totalMembers, 0, {"activity": "Processing"});
     console.log(`Estimated ${estimate} to go through ${totalPages} and ${totalMembers} members.\n`);
     await new Promise(done => setTimeout(done, 300));
-    await (groupID, totalPages, barGather);
+    await dispatch(groupID, totalPages, barGather);
     await chewer.chewIDs(barProc).catch(console.error);
+    process.exit(0);
 }
 
 async function dispatch(groupID, totalPageNum, bar) {
