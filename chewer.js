@@ -4,8 +4,6 @@ const axios = require('axios');
 const misc = require('./misc');
 const SteamIDList = [];
 
-var key = null;
-
 module.exports = {
     xmlToJSON: function(xml) {
         return JSON.parse(convert.xml2json(xml, {compact: false}));
@@ -20,12 +18,18 @@ module.exports = {
         })
     },
     chewIDs: async function(bar) {
+        var profileList = new Object();
         key = await misc.getKey();
         SteamIDList.forEach(async function(steamID, i){
             bar.update(++i);
             const [username, country, state] = await chewProfile(steamID).catch(console.error);
-            console.log(`${username} (${steamID}) - ${state} ${country}`);
+            profileList[steamID] = {
+                "username": username,
+                "country": country,
+                "state": state
+            };
         });
+        await misc.createResultFile(profileList);
         bar.stop();
     }
 };
@@ -42,6 +46,7 @@ function getMemberElement(json) {
 }
 
 async function chewProfile(steamID) {
+    var key = await misc.getKey();
     await new Promise(done => setTimeout(done, 10));
     const response = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${key}&steamids=${steamID}`);
     const profile = JSON.parse(JSON.stringify(response.data))['response']['players'][0];
@@ -54,4 +59,3 @@ async function chewProfile(steamID) {
     }
     return [username, country, state];
 }
-
