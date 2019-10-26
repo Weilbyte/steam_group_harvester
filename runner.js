@@ -5,6 +5,8 @@ const index = require('./index');
 const chewer = require('./chewer');
 const misc = require('./misc');
 
+var groupID = null;
+
 const barConfig = {
     format: '{activity}\t |' + '{bar}' + '| {percentage}%',
     barCompleteChar: '\u2588',
@@ -19,8 +21,9 @@ module.exports = {
 }
 
 async function start() {
+    groupID = index.groupID;
     const multibar = new progress.MultiBar(barConfig);
-    const [totalPages, totalMembers] = await getGroupData(index.groupID);
+    const [totalPages, totalMembers] = await getGroupData(groupID);
     const estimate = misc.estimateTime(totalPages, totalMembers);
     const barGather = multibar.create(totalPages, 0, {"activity": "Gathering"});
     const barProc = multibar.create(totalMembers, 0, {"activity": "Processing"});
@@ -48,13 +51,13 @@ async function dispatch(totalPageNum, bar) {
 }
 
 async function requestPage(page) {
-    const response = await axios.get(`https://steamcommunity.com/groups/${index.groupID}/memberslistxml/?xml=1&p=${page}`);
+    const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1&p=${page}`);
     const json = chewer.xmlToJSON(response.data);
     await chewer.chewPage(json);
 }
 
 async function getGroupData() {
-    const response = await axios.get(`https://steamcommunity.com/groups/${index.groupID}/memberslistxml/?xml=1`);
+    const response = await axios.get(`https://steamcommunity.com/groups/${groupID}/memberslistxml/?xml=1`);
     const json = chewer.xmlToJSON(response.data);
     const pages = parseInt(json['elements']['0']['elements']['3']['elements']['0']['text']);
     const members = parseInt(json['elements']['0']['elements']['2']['elements']['0']['text']);
