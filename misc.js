@@ -1,3 +1,8 @@
+const fs = require('fs');
+
+var APIKey;
+const APIKeyFile = "./api.key"
+
 module.exports = {
     estimateTime: function(pages, members) {
         var seconds = (pages + (pages * 0.100));
@@ -10,5 +15,28 @@ module.exports = {
             return `${minutes.toFixed(0)}m`;
         }
         return `${seconds}s`;
+    },
+    loadKey: function() {
+        try {
+            if (fs.existsSync(APIKeyFile)) {
+                APIKey = fs.readFileSync(APIKeyFile, 'utf8');
+                if (APIKey.length < 5) {
+                    console.log("\nPut your API key in the api.key file.");
+                    process.exit(1);
+                }
+            } else {
+                fs.writeFileSync(APIKeyFile,'KEY');
+                console.log("\nPut your API key in the api.key file.");
+                process.exit(1);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getKey: function() {
+        if (APIKey.length > 5) return APIKey;
+        console.log("\nPut your API key in the api.key file.");
+        process.exit(1);
     }
 }
+
