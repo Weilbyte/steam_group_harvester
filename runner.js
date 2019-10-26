@@ -21,19 +21,21 @@ module.exports = {
 }
 
 async function start() {
+    const startTime = Date.now()/1000;
     groupID = index.groupID;
     const multibar = new progress.MultiBar(barConfig);
     const [totalPages, totalMembers] = await getGroupData(groupID);
     const estimate = misc.estimateTime(totalPages, totalMembers);
     const barGather = multibar.create(totalPages, 0, {"activity": "Gathering"});
     const barProc = multibar.create(totalMembers, 0, {"activity": "Processing"});
-    console.log(`Estimated ${estimate} to go through ${totalPages} and ${totalMembers} members.\n`);
+    console.log(`Estimated ${estimate} to go through ${totalPages} pages and ${totalMembers} members.\n`);
     await new Promise(done => setTimeout(done, 300));
     await dispatch(totalPages, barGather).catch(console.error);
     await chewer.chewIDs(barProc).catch(console.error);
     multibar.stop();
+    const timeTaken = Date.now()/1000 - startTime;
+    console.log(`\nOutput file ${`./profiles_${index.groupID}.json`}.\nFinished in ${misc.converTime(timeTaken.toFixed(1))} ${String.fromCodePoint(10004)}`);
     process.exit(0);
-
 }
 
 async function dispatch(totalPageNum, bar) {
