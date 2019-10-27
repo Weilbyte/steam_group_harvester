@@ -1,9 +1,10 @@
 const fs = require('fs');
+const path = require('path');
 
 const index = require('./index');
 
 var APIKey;
-const APIKeyFile = "./api.key";
+const APIKeyFile = path.join(__dirname, '../api.key');
 
 module.exports = {
     createResultFile: createResultFile,
@@ -43,7 +44,7 @@ function estimateTime(pages, members) {
 }
 
 async function createResultFile(json) {
-    const ResultFile = `./profiles_${index.groupID}.json`; 
+    const ResultFile = path.join(__dirname, `../output/profiles_${index.groupID}.json`); 
     const stringJson = JSON.stringify(json);
     fs.writeFileSync(ResultFile, stringJson);
 }
