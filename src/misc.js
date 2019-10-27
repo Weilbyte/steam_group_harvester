@@ -39,7 +39,7 @@ function loadKey() {
 }
 
 function estimateTime(pages, members) {
-    var seconds = (pages + (pages * 0.100) + (members * 0.470)).toFixed(1);
+    var seconds = (pages + (pages * 0.100) + (members/100)).toFixed(1);
     return convertTime(seconds);
 }
 
