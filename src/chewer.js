@@ -1,7 +1,6 @@
 const convert = require('xml-js');
 const axios = require('axios');
 
-const runner = require('./runner');
 const misc = require('./misc');
 const SteamIDList = [];
 
