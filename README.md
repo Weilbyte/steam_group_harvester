@@ -30,7 +30,7 @@ The speed depends on the group's size.
 ### Rate Limits
 steam_group_harvester uses two separate Steam APIs:
 * **Community XML API** Used for collecting the member IDs. You might notice the bar stopping for a bit - this is because there is a delay that is used to respect the rate limit for this API.
-* **Web API** Used for querying member IDs for data. There is no strict rate-limit for this but I have added a 100ms delay in-between requests in order to not strain their servers too badly. With your API key up to 100k requests can be made per day.
+* **Web API** Used for querying member IDs for data. There is no strict rate-limit for this but I have added a 1s delay in-between requests in order to not strain their servers too much. With your API key up to 100k requests can be made per day, and up to 100 members are queried with each request.
 
 ## License
 
