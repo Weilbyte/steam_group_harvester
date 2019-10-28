@@ -37,7 +37,7 @@ async function chewIDs(bar) {
                 for (var chewedProfile in chewedQueue) {
                     const steamid = chewedQueue[chewedProfile]['steamid'];
                     profileList['profiles'][steamid] = {
-                        "username": chewedQueue[chewedProfile]['username'].replace(/'"/g,'').replace(/\\/g, ""),
+                        "username": chewedQueue[chewedProfile]['username'],
                         "country": chewedQueue[chewedProfile]['country'],
                         "state": chewedQueue[chewedProfile]['state']
                     }
@@ -91,7 +91,7 @@ async function buildChewedProfilesObject(profiles) {
     var profileNum = 0;
     for (var profile in profiles) {
         const steamid = profiles[profile]['steamid'];
-        const username = profiles[profile]['personaname'];
+        const username = await sanitizeUsername(profiles[profile]['personaname']);
         var [country, state] = ["N/A","N/A"];
         if (profiles[profile]['loccountrycode'] != null) {
             country = profiles[profile]['loccountrycode'];
@@ -117,7 +117,12 @@ async function sendChewProfileQueueRequest(requestUrl) {
         return json;
     } catch (error) {
         if (error.response.status == 500) {
+            await new Promise(done => setTimeout(done, 2000));
             return await sendChewProfileQueueRequest(requestUrl);
         }
     }
 };
+
+async function sanitizeUsername(username) {
+    if (username != null) return username.replace(/'"/g,'').replace(/\\/g, "");
+}
