@@ -27,7 +27,7 @@ async function chewPage(json) {
 async function chewIDs(bar) { 
     const total = SteamIDList.length;
     var i=0;
-    var profileList = new Object();
+    var profileList = {"profiles":{}};
     var queue = [];
     for (const steamID of SteamIDList) {
             bar.update(++i);
@@ -36,8 +36,8 @@ async function chewIDs(bar) {
                 const chewedQueue = await chewProfileQueue(queue);
                 for (var chewedProfile in chewedQueue) {
                     const steamid = chewedQueue[chewedProfile]['steamid'];
-                    profileList[steamid] = {
-                        "username": chewedQueue[chewedProfile]['username'],
+                    profileList['profiles'][steamid] = {
+                        "username": chewedQueue[chewedProfile]['username'].replace(/'"/g,'').replace(/\\/g, ""),
                         "country": chewedQueue[chewedProfile]['country'],
                         "state": chewedQueue[chewedProfile]['state']
                     }
@@ -92,7 +92,7 @@ async function buildChewedProfilesObject(profiles) {
     for (var profile in profiles) {
         const steamid = profiles[profile]['steamid'];
         const username = profiles[profile]['personaname'];
-        var [country, state] = ["N/A",""];
+        var [country, state] = ["N/A","N/A"];
         if (profiles[profile]['loccountrycode'] != null) {
             country = profiles[profile]['loccountrycode'];
             if (country === 'US') {
@@ -110,8 +110,14 @@ async function buildChewedProfilesObject(profiles) {
 };
 
 async function sendChewProfileQueueRequest(requestUrl) {
-    await new Promise(done => setTimeout(done, 1000));
-    const response = await axios.get(requestUrl);
-    const json = JSON.parse(JSON.stringify(response.data));
-    return json;
+    try {
+        await new Promise(done => setTimeout(done, 1000));
+        const response = await axios.get(requestUrl);
+        const json = JSON.parse(JSON.stringify(response.data));
+        return json;
+    } catch (error) {
+        if (error.response.status == 500) {
+            return await sendChewProfileQueueRequest(requestUrl);
+        }
+    }
 };
