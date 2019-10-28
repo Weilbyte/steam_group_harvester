@@ -34,7 +34,7 @@ async function start() {
     await chewer.chewIDs(barProc).catch(console.error);
     multibar.stop();
     const timeTaken = Date.now()/1000 - startTime;
-    console.log(`\nOutput file ../output/${`./profiles_${index.groupID}.json`}.\nFinished in ${misc.converTime(timeTaken.toFixed(1))} ${String.fromCodePoint(10004)}`);
+    console.log(`\nOutput file ../output/${`profiles_${index.groupID}.json`}.\nFinished in ${misc.converTime(timeTaken.toFixed(1))} ${String.fromCodePoint(10004)}`);
     process.exit(0);
 }
 
